@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import *
 from tkinter import messagebox
 import os
 import sys
@@ -6,7 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.support.select import Select
 from datetime import date, datetime
 
-WAIT_TIME = 5
+WAIT_TIME = 2
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -20,6 +21,11 @@ class Application(tk.Frame):
         self.hi_there["command"] = self.do_tha_thing
         self.hi_there["width"]=120
         self.hi_there.grid(row=10,column=0,columnspan=2)
+
+        self.waittime = tk.Entry(self, width=100, textvariable=StringVar(self,'2'))
+        self.waittime.grid(row=0,column=1,padx=5,pady=5)
+        self.waittimelabel = tk.Label(self, width=20, text="Wait time")
+        self.waittimelabel.grid(row=0,column=0)
 
         self.username = tk.Entry(self, width=100)
         self.username.grid(row=1,column=1,padx=5,pady=5)
@@ -59,6 +65,8 @@ class Application(tk.Frame):
     def do_tha_thing(self):
         try:
             options = webdriver.ChromeOptions()
+
+            WAIT_TIME = int(self.waittime.get().strip())
 
             options.add_argument('headless')
 
