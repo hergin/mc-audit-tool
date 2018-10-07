@@ -2,9 +2,23 @@ from imapclient import IMAPClient
 import email
 import time
 import re
+import configparser
+import os.path
+import sys
 
-EMAIL_ADDRESS = 'addaudittrail@gmail.com'
-PASSWORD = ''
+if not os.path.exists('info.ini'):
+    print("please create a file named 'info.ini' for email and password information.")
+    print("content of this file will be as below:")
+    print("[email]")
+    print("user = PUT_EMAIL_HERE")
+    print("password = PUT_PASSWORD_HERE")
+    sys.exit()
+
+config = configparser.ConfigParser()
+config.read('info.ini')
+
+EMAIL_ADDRESS = config['email']['user']
+PASSWORD = config['email']['password']
 
 server = IMAPClient('imap.gmail.com', use_uid=True)
 server.login(EMAIL_ADDRESS,PASSWORD)
