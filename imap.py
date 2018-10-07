@@ -1,4 +1,6 @@
 from imapclient import IMAPClient
+import smtplib
+from email.mime.text import MIMEText
 import email
 import time
 import re
@@ -45,6 +47,16 @@ while True:
                 print("Content: " + content)
             else:
                 print("Content: " + audittrailcontent[0])
+
+            send_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+            send_server.login(EMAIL_ADDRESS,PASSWORD)
+            msg = MIMEText('Trying to add audit trail, will reply with the result!')
+            msg['Subject'] = "RE: "+email_message.get('Subject')
+            msg['From'] = EMAIL_ADDRESS
+            msg['To'] = email_message.get('From')
+            send_server.sendmail(EMAIL_ADDRESS,email_message.get('From'),msg.as_string())
+            send_server.quit()
+
     
     time.sleep(30)        
 
