@@ -7,6 +7,7 @@ import re
 import configparser
 import os.path
 import sys
+import audit_trail_adder
 
 if not os.path.exists('info.ini'):
     print("please create a file named 'info.ini' for email and password information.")
@@ -14,6 +15,9 @@ if not os.path.exists('info.ini'):
     print("[email]")
     print("user = PUT_EMAIL_HERE")
     print("password = PUT_PASSWORD_HERE")
+    print("[sosym]")
+    print("user = SOSYM_USER_EMAIL_HERE")
+    print("password = SOSYM_USER_PASSWORD_HERE")
     sys.exit()
 
 config = configparser.ConfigParser()
@@ -35,7 +39,9 @@ while True:
             email_message = email.message_from_bytes(message_data[b'RFC822'])
             print("From: " + email_message.get('From'))
             print("Subject: " + email_message.get('Subject'))
+
             content = ""
+                
             if email_message.get_payload()[0] is str:
                 content = email_message.get_payload()[0]
             else:
@@ -43,14 +49,21 @@ while True:
 
             audittrailcontent = re.compile('<audittrail>(.*?)</audittrail>',re.DOTALL | re.IGNORECASE).findall(content)
             
-            if len(audittrailcontent)==0:
-                print("Content: " + content)
-            else:
-                print("Content: " + audittrailcontent[0])
+            if len(audittrailcontent)>0:
+                content = audittrailcontent[0]
+            print("Content: " + content)
+
+            necessary_parts = email_message.get('Subject').split('|')
+            sosym_id = necessary_parts[0]
+            sosym_from = necessary_parts[1]
+            sosym_to = necessary_parts[2]
+            sosym_subject = necessary_parts[3]
+
+            result = audit_trail_adder.add(config['sosym']['user'],config['sosym']['password'],sosym_id,sosym_from,sosym_to,sosym_subject,content,WAIT_TIME=5)
 
             send_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
             send_server.login(EMAIL_ADDRESS,PASSWORD)
-            msg = MIMEText('Trying to add audit trail, will reply with the result!')
+            msg = MIMEText(result)
             msg['Subject'] = "RE: "+email_message.get('Subject')
             msg['From'] = EMAIL_ADDRESS
             msg['To'] = email_message.get('From')
