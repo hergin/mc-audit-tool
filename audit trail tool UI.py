@@ -2,6 +2,21 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
 import audit_trail_adder
+import configparser
+import os.path
+
+if not os.path.exists('info.ini'):
+    print("please create a file named 'info.ini' for sosym user name and password information.")
+    print("content of this file will be as below:")
+    print("[sosym]")
+    print("user = SOSYM_USER_EMAIL_HERE")
+    print("password = SOSYM_USER_PASSWORD_HERE")
+    sys.exit()
+
+config = configparser.ConfigParser()
+config.read('info.ini')
+
+
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -21,12 +36,12 @@ class Application(tk.Frame):
         self.waittimelabel = tk.Label(self, width=20, text="Wait time")
         self.waittimelabel.grid(row=0,column=0)
 
-        self.username = tk.Entry(self, width=100)
+        self.username = tk.Entry(self, width=100, textvariable=StringVar(self,config['sosym']['user']))
         self.username.grid(row=1,column=1,padx=5,pady=5)
         self.usernamelabel = tk.Label(self, width=20, text="User name")
         self.usernamelabel.grid(row=1,column=0)
 
-        self.password = tk.Entry(self, width=100, show='*')
+        self.password = tk.Entry(self, width=100, show='*', textvariable=StringVar(self,config['sosym']['password']))
         self.password.grid(row=2,column=1,padx=5,pady=5)
         self.passwordlabel = tk.Label(self, width=20, text="Password")
         self.passwordlabel.grid(row=2,column=0)
@@ -60,7 +75,6 @@ class Application(tk.Frame):
 
         result=audit_trail_adder.add(self.username.get().strip(),self.password.get().strip(),self.sosymid.get().strip(),self.toentry.get().strip(),self.fromentry.get().strip(),self.subjectentry.get().strip(),self.bodyentry.get("1.0","end").strip())
         messagebox.showinfo("Message",result)
-
 
 
 root = tk.Tk()
