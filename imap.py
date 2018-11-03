@@ -40,35 +40,37 @@ while True:
             print("From: " + email_message.get('From'))
             print("Subject: " + email_message.get('Subject'))
 
-            content = ""
+            if email_message.get('Subject').strip().startswith("SOSYM"):
+
+                content = ""
+                    
+                if email_message.get_payload()[0] is str:
+                    content = email_message.get_payload()[0]
+                else:
+                    content = email_message.get_payload()[0].get_payload()
+
+                audittrailcontent = re.compile('<audittrail>(.*?)</audittrail>',re.DOTALL | re.IGNORECASE).findall(content)
                 
-            if email_message.get_payload()[0] is str:
-                content = email_message.get_payload()[0]
-            else:
-                content = email_message.get_payload()[0].get_payload()
+                if len(audittrailcontent)>0:
+                    content = audittrailcontent[0]
+                print("Content: " + content)
 
-            audittrailcontent = re.compile('<audittrail>(.*?)</audittrail>',re.DOTALL | re.IGNORECASE).findall(content)
-            
-            if len(audittrailcontent)>0:
-                content = audittrailcontent[0]
-            print("Content: " + content)
+                necessary_parts = email_message.get('Subject').split('|')
+                sosym_id = necessary_parts[0]
+                sosym_from = necessary_parts[1]
+                sosym_to = necessary_parts[2]
+                sosym_subject = necessary_parts[3]
 
-            necessary_parts = email_message.get('Subject').split('|')
-            sosym_id = necessary_parts[0]
-            sosym_from = necessary_parts[1]
-            sosym_to = necessary_parts[2]
-            sosym_subject = necessary_parts[3]
+                result = audit_trail_adder.add(config['sosym']['user'],config['sosym']['password'],sosym_id,sosym_from,sosym_to,sosym_subject,content,WAIT_TIME=5)
 
-            result = audit_trail_adder.add(config['sosym']['user'],config['sosym']['password'],sosym_id,sosym_from,sosym_to,sosym_subject,content,WAIT_TIME=5)
-
-            send_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-            send_server.login(EMAIL_ADDRESS,PASSWORD)
-            msg = MIMEText(result)
-            msg['Subject'] = "RE: "+email_message.get('Subject')
-            msg['From'] = EMAIL_ADDRESS
-            msg['To'] = email_message.get('From')
-            send_server.sendmail(EMAIL_ADDRESS,email_message.get('From'),msg.as_string())
-            send_server.quit()
+                send_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                send_server.login(EMAIL_ADDRESS,PASSWORD)
+                msg = MIMEText(result)
+                msg['Subject'] = "RE: "+email_message.get('Subject')
+                msg['From'] = EMAIL_ADDRESS
+                msg['To'] = email_message.get('From')
+                send_server.sendmail(EMAIL_ADDRESS,email_message.get('From'),msg.as_string())
+                send_server.quit()
 
     
     time.sleep(30)        
